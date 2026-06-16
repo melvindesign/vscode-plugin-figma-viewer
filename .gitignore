@@ -1,0 +1,8 @@
+node_modules/
+dist/
+out/
+*.vsix
+
+# Credentials — never commit
+.env
+.env.local

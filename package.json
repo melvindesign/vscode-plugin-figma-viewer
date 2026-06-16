@@ -1,0 +1,183 @@
+{
+  "name": "figma-viewer",
+  "displayName": "Figma Viewer",
+  "description": "Parcourez vos fichiers Figma par équipe et ouvrez-les dans le navigateur intégré de VS Code.",
+  "version": "0.1.0",
+  "publisher": "melv",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "figmaViewer",
+          "title": "Figma",
+          "icon": "media/figma.svg"
+        }
+      ]
+    },
+    "views": {
+      "figmaViewer": [
+        {
+          "id": "figmaViewer.files",
+          "name": "Fichiers",
+          "icon": "media/figma.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "figmaViewer.files",
+        "when": "!figmaViewer.authenticated",
+        "contents": "Connectez-vous à votre compte Figma pour afficher vos fichiers.\n[Se connecter à Figma](command:figmaViewer.signIn)"
+      }
+    ],
+    "commands": [
+      {
+        "command": "figmaViewer.signIn",
+        "title": "Figma : Se connecter",
+        "icon": "$(sign-in)"
+      },
+      {
+        "command": "figmaViewer.signOut",
+        "title": "Figma : Se déconnecter",
+        "icon": "$(sign-out)"
+      },
+      {
+        "command": "figmaViewer.refresh",
+        "title": "Figma : Rafraîchir",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "figmaViewer.addTeam",
+        "title": "Figma : Ajouter une équipe",
+        "icon": "$(add)"
+      },
+      {
+        "command": "figmaViewer.removeTeam",
+        "title": "Figma : Retirer l'équipe"
+      },
+      {
+        "command": "figmaViewer.newFile",
+        "title": "Figma : Nouveau fichier",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "figmaViewer.openFile",
+        "title": "Figma : Ouvrir le fichier"
+      },
+      {
+        "command": "figmaViewer.openFileExternal",
+        "title": "Figma : Ouvrir dans le navigateur système",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "figmaViewer.addDraft",
+        "title": "Figma : Ajouter un brouillon",
+        "icon": "$(add)"
+      },
+      {
+        "command": "figmaViewer.removeDraft",
+        "title": "Figma : Retirer le brouillon",
+        "icon": "$(trash)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "figmaViewer.newFile",
+          "when": "view == figmaViewer.files && figmaViewer.authenticated",
+          "group": "navigation@1"
+        },
+        {
+          "command": "figmaViewer.addTeam",
+          "when": "view == figmaViewer.files && figmaViewer.authenticated",
+          "group": "navigation@2"
+        },
+        {
+          "command": "figmaViewer.refresh",
+          "when": "view == figmaViewer.files && figmaViewer.authenticated",
+          "group": "navigation@3"
+        },
+        {
+          "command": "figmaViewer.signOut",
+          "when": "view == figmaViewer.files && figmaViewer.authenticated",
+          "group": "overflow@1"
+        },
+        {
+          "command": "figmaViewer.signIn",
+          "when": "view == figmaViewer.files && !figmaViewer.authenticated",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "figmaViewer.addDraft",
+          "when": "view == figmaViewer.files && viewItem == figmaDraftsFolder",
+          "group": "inline"
+        },
+        {
+          "command": "figmaViewer.addTeam",
+          "when": "view == figmaViewer.files && viewItem == figmaTeamsFolder",
+          "group": "inline"
+        },
+        {
+          "command": "figmaViewer.openFileExternal",
+          "when": "view == figmaViewer.files && (viewItem == figmaFile || viewItem == figmaDraftFile)",
+          "group": "inline"
+        },
+        {
+          "command": "figmaViewer.removeDraft",
+          "when": "view == figmaViewer.files && viewItem == figmaDraftFile",
+          "group": "inline"
+        },
+        {
+          "command": "figmaViewer.removeTeam",
+          "when": "view == figmaViewer.files && viewItem == figmaTeam"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Figma Viewer",
+      "properties": {
+        "figmaViewer.teams": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "IDs des équipes Figma à afficher.",
+          "scope": "window"
+        },
+        "figmaViewer.openCommand": {
+          "type": "string",
+          "default": "workbench.action.browser.open",
+          "description": "ID de la commande VS Code utilisée pour ouvrir une URL. Par défaut la commande native qui route vers le navigateur configuré. Mettez par ex. « browserBridge.openInBrowser » pour cibler une extension de navigateur intégré précise.",
+          "scope": "window"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "node esbuild.js --production",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.4.0"
+  }
+}
