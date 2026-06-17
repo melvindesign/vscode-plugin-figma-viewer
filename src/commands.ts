@@ -5,8 +5,8 @@ import { parseFigmaFileUrl } from "./figmaUrl";
 import { RecentStore } from "./recents";
 import { DraftStore } from "./drafts";
 import { FileNode, TeamNode } from "./tree/filesProvider";
-import { FigmaPanel } from "./figmaPanel";
 
+/* Création de fichier désactivée — utiliser « Ajouter le lien d'un fichier » à la place.
 const NEW_FILE_TYPES: { label: string; url: string; name: string }[] = [
   { label: "$(file) Nouveau fichier Design", url: "https://www.figma.com/file/new", name: "Design sans titre" },
   { label: "$(comment-discussion) Nouveau FigJam", url: "https://www.figma.com/board/new", name: "FigJam sans titre" },
@@ -15,6 +15,7 @@ const NEW_FILE_TYPES: { label: string; url: string; name: string }[] = [
   { label: "$(globe) Nouveau Site", url: "https://www.figma.com/site/new", name: "Site sans titre" },
   { label: "$(sparkle) Nouveau Make", url: "https://www.figma.com/make/new", name: "Make sans titre" },
 ];
+*/
 
 /** Extrait un ID d'équipe depuis une URL Figma ou une saisie brute. */
 export function parseTeamId(input: string): string | undefined {
@@ -155,12 +156,9 @@ export async function openFileExternal(node: FileNode): Promise<void> {
   await vscode.env.openExternal(vscode.Uri.parse(node.url));
 }
 
-const GENERIC_NAMES = ["Fichier Figma", "Untitled", "Sans titre"];
 
-export async function newFile(
-  drafts: DraftStore,
-  extensionUri: vscode.Uri
-): Promise<void> {
+/* Création de fichier désactivée — utiliser « Ajouter le lien d'un fichier » à la place.
+export async function newFile(drafts: DraftStore, recents: RecentStore): Promise<void> {
   const pick = await vscode.window.showQuickPick(NEW_FILE_TYPES, {
     title: "Nouveau fichier Figma",
     placeHolder: "Type de fichier à créer",
@@ -169,28 +167,37 @@ export async function newFile(
     return;
   }
 
-  // Ouvre Figma dans notre propre panneau navigateur.
-  // FigmaPanel écoute les postMessage de figma.com et résout dès qu'il
-  // capture une URL de fichier valide (automatiquement ou via le bouton
-  // "Enregistrer" dans la toolbar si Figma n'émet pas la clé).
-  const capturedUrl = await FigmaPanel.open(
-    extensionUri,
-    pick.url,
-    pick.name
-  );
+  await openInIntegratedBrowser(pick.url);
 
-  if (!capturedUrl) {
+  const status = vscode.window.setStatusBarMessage(
+    "$(loading~spin) Création du fichier Figma en cours…"
+  );
+  await new Promise((resolve) => setTimeout(resolve, 10_000));
+  status.dispose();
+
+  const input = await vscode.window.showInputBox({
+    title: "Fichier créé ?",
+    prompt: "Copiez l'URL depuis la barre d'adresse du navigateur et collez-la ici.",
+    placeHolder: "https://www.figma.com/design/AbC123…/Mon-fichier",
+    ignoreFocusOut: true,
+  });
+  if (!input) {
     return;
   }
 
-  const parsed = parseFigmaFileUrl(capturedUrl);
-  const name = parsed && !GENERIC_NAMES.includes(parsed.name)
-    ? parsed.name
-    : pick.name;
+  const parsed = parseFigmaFileUrl(input);
+  if (!parsed) {
+    vscode.window.showErrorMessage(
+      "Lien Figma invalide. Attendu une URL de fichier (figma.com/design/… ou /file/…)."
+    );
+    return;
+  }
 
-  await drafts.add({ name, url: capturedUrl });
-  vscode.window.setStatusBarMessage(
-    `$(bookmark) Ajouté aux brouillons : ${name}`,
-    4000
-  );
+  const name = parsed.name || pick.name;
+  await Promise.all([
+    drafts.add({ name, url: parsed.url }),
+    recents.add({ name, url: parsed.url }),
+  ]);
+  vscode.window.setStatusBarMessage(`$(bookmark) « ${name} » ajouté aux brouillons et récents`, 5000);
 }
+*/

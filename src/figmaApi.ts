@@ -28,11 +28,11 @@ export class FigmaApiError extends Error {
 export class FigmaApi {
   constructor(private readonly auth: FigmaAuth) {}
 
-  async getTeamProjects(teamId: string): Promise<FigmaProject[]> {
-    const data = await this.get<{ projects: FigmaProject[] }>(
+  async getTeamProjects(teamId: string): Promise<{ name: string; projects: FigmaProject[] }> {
+    const data = await this.get<{ name: string; projects: FigmaProject[] }>(
       `/v1/teams/${encodeURIComponent(teamId)}/projects`
     );
-    return data.projects ?? [];
+    return { name: data.name ?? teamId, projects: data.projects ?? [] };
   }
 
   async getProjectFiles(projectId: string): Promise<FigmaFile[]> {
@@ -69,11 +69,12 @@ export function fileUrl(key: string, editorType?: string): string {
 
 function editorTypeToUrlSegment(editorType?: string): string {
   switch (editorType?.toLowerCase()) {
+    case "figma": return "design";
     case "figjam": return "board";
     case "slides": return "slides";
     case "make": return "make";
     case "buzz": return "buzz";
     case "sites": return "sites";
-    default: return "file";
+    default: return "design";
   }
 }

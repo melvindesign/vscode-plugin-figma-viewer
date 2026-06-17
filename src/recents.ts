@@ -9,7 +9,7 @@ export interface RecentFile {
   openedAt: number;
 }
 
-/** Historique des fichiers récemment ouverts, persisté dans le globalState. */
+/** Historique des fichiers récemment ouverts, persisté dans le workspaceState. */
 export class RecentStore {
   private readonly _onDidChange = new vscode.EventEmitter<void>();
   readonly onDidChange = this._onDidChange.event;

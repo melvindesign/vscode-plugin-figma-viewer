@@ -6,7 +6,7 @@
   "publisher": "melv",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.110.0"
   },
   "categories": [
     "Other"
@@ -67,11 +67,6 @@
         "title": "Figma : Retirer l'équipe"
       },
       {
-        "command": "figmaViewer.newFile",
-        "title": "Figma : Nouveau fichier",
-        "icon": "$(new-file)"
-      },
-      {
         "command": "figmaViewer.openFile",
         "title": "Figma : Ouvrir le fichier"
       },
@@ -89,15 +84,24 @@
         "command": "figmaViewer.removeDraft",
         "title": "Figma : Retirer le brouillon",
         "icon": "$(trash)"
+      },
+      {
+        "command": "figmaViewer.mcpStart",
+        "title": "Figma : Démarrer le serveur MCP",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "figmaViewer.mcpStop",
+        "title": "Figma : Arrêter le serveur MCP",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "figmaViewer.mcpStatus",
+        "title": "Figma : Statut du serveur MCP"
       }
     ],
     "menus": {
       "view/title": [
-        {
-          "command": "figmaViewer.newFile",
-          "when": "view == figmaViewer.files && figmaViewer.authenticated",
-          "group": "navigation@1"
-        },
         {
           "command": "figmaViewer.addTeam",
           "when": "view == figmaViewer.files && figmaViewer.authenticated",
@@ -161,7 +165,25 @@
         "figmaViewer.openCommand": {
           "type": "string",
           "default": "workbench.action.browser.open",
-          "description": "ID de la commande VS Code utilisée pour ouvrir une URL. Par défaut la commande native qui route vers le navigateur configuré. Mettez par ex. « browserBridge.openInBrowser » pour cibler une extension de navigateur intégré précise.",
+          "description": "Commande VS Code utilisée pour ouvrir une URL dans le navigateur.",
+          "scope": "window"
+        },
+        "figmaViewer.mcp.port": {
+          "type": "number",
+          "default": 7346,
+          "description": "Port du serveur MCP intégré (essaie les 10 ports suivants si occupé).",
+          "scope": "window"
+        },
+        "figmaViewer.mcp.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Démarre automatiquement le serveur MCP au lancement de VS Code.",
+          "scope": "window"
+        },
+        "figmaViewer.mcp.requireAuth": {
+          "type": "boolean",
+          "default": false,
+          "description": "Protège le serveur MCP par un token Bearer généré aléatoirement.",
           "scope": "window"
         }
       }
@@ -175,8 +197,9 @@
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/node": "^20.11.0",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.120.0",
     "esbuild": "^0.20.0",
     "typescript": "^5.4.0"
   }

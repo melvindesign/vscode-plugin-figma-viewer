@@ -36,7 +36,7 @@ extension.ts (activate)
   └── DraftStore      drafts.ts           Manually pinned files (globalState)
   └── FilesProvider   tree/filesProvider.ts  TreeDataProvider for the sidebar view
   └── commands.ts     Command handlers registered in activate()
-  └── browser.ts      Opens URLs via the VS Code browser command; talks to an optional browserBridge HTTP API (port 3788) to reuse/activate existing tabs
+  └── browser.ts      Opens URLs via the VS Code browser command (workbench.action.browser.open); falls back to env.openExternal
 ```
 
 **Tree view structure (sidebar):**
@@ -46,7 +46,6 @@ extension.ts (activate)
 
 **Key design decisions:**
 - OAuth callback is handled by a local HTTP server spun up on `FIGMA_CALLBACK_PORT` (default 53111) during sign-in; the server shuts down after the callback is received.
-- `browser.ts` speaks to an optional `browserBridge` extension HTTP API to detect and reactivate already-open tabs. This is best-effort — the extension works without it.
-- File opens route through `figmaViewer.openCommand` (default: `workbench.action.browser.open`), overridable via VS Code settings for users with a specific integrated browser extension.
-- After creating a new file, `commands.ts` polls the browserBridge for up to 15 s to capture the final URL and auto-add it to Drafts.
+- `browser.ts` opens URLs via `figmaViewer.openCommand` (default: `workbench.action.browser.open`), overridable via VS Code settings. Falls back to `env.openExternal` if the command fails.
+- The VS Code Integrated Browser exposes no public extension API (no tab listing, no navigation events). There is no way to detect or reactivate an already-open tab natively.
 - The UI language is French (labels, messages, comments).

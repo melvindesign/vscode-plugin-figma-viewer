@@ -12,7 +12,7 @@ type Node =
   | TeamNode
   | ProjectNode
   | FileNode
-  | NewFileNode
+  // | NewFileNode  // Création de fichier désactivée
   | AddDraftNode
   | AddTeamNode
   | MessageNode;
@@ -45,8 +45,8 @@ export class TeamsNode extends vscode.TreeItem {
 }
 
 export class TeamNode extends vscode.TreeItem {
-  constructor(readonly teamId: string) {
-    super(`Équipe ${teamId}`, vscode.TreeItemCollapsibleState.Expanded);
+  constructor(readonly teamId: string, name?: string) {
+    super(name ?? `Équipe ${teamId}`, vscode.TreeItemCollapsibleState.Expanded);
     this.contextValue = "figmaTeam";
     this.iconPath = new vscode.ThemeIcon("organization");
   }
@@ -83,10 +83,7 @@ export class FileNode extends vscode.TreeItem {
   }
 }
 
-/**
- * Action « Nouveau fichier » — volontairement distincte d'un FileNode (icône +
- * verte) pour signifier qu'il s'agit d'une création, pas d'un fichier existant.
- */
+/* Création de fichier désactivée — utiliser AddDraftNode à la place.
 export class NewFileNode extends vscode.TreeItem {
   constructor() {
     super("Nouveau fichier", vscode.TreeItemCollapsibleState.None);
@@ -103,6 +100,7 @@ export class NewFileNode extends vscode.TreeItem {
     };
   }
 }
+*/
 
 /** Action « Ajouter le lien d'un fichier » dans la section Brouillons. */
 export class AddDraftNode extends vscode.TreeItem {
@@ -150,6 +148,7 @@ export class FilesProvider implements vscode.TreeDataProvider<Node> {
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private readonly extensionUri: vscode.Uri;
+  private readonly teamNames = new Map<string, string>();
 
   constructor(
     private readonly api: FigmaApi,
@@ -229,9 +228,7 @@ export class FilesProvider implements vscode.TreeDataProvider<Node> {
   }
 
   private getDrafts(): Node[] {
-    // Actions en tête (ajouter un lien existant, créer un nouveau fichier),
-    // puis les brouillons enregistrés.
-    const nodes: Node[] = [new AddDraftNode(), new NewFileNode()];
+    const nodes: Node[] = [new AddDraftNode()]; // new NewFileNode() désactivé
     nodes.push(
       ...this.drafts
         .list()
@@ -262,19 +259,20 @@ export class FilesProvider implements vscode.TreeDataProvider<Node> {
         new AddTeamNode(),
       ];
     }
-    return teams.map((id) => new TeamNode(id));
+    return teams.map((id) => new TeamNode(id, this.teamNames.get(id)));
   }
 
   private async getTeamChildren(teamId: string): Promise<Node[]> {
-    const projects = await this.api.getTeamProjects(teamId);
-    // Action de création tout en haut de l'équipe uniquement.
-    const nodes: Node[] = [new NewFileNode()];
-    if (projects.length === 0) {
-      nodes.push(new MessageNode("Aucun projet dans cette équipe."));
-    } else {
-      nodes.push(...projects.map((p) => new ProjectNode(p.id, p.name)));
+    const { name, projects } = await this.api.getTeamProjects(teamId);
+    if (!this.teamNames.has(teamId) || this.teamNames.get(teamId) !== name) {
+      this.teamNames.set(teamId, name);
+      // Rafraîchit le nœud parent (TeamsNode) pour mettre à jour le label.
+      this._onDidChangeTreeData.fire(undefined);
     }
-    return nodes;
+    if (projects.length === 0) {
+      return [new MessageNode("Aucun projet dans cette équipe.")];
+    }
+    return projects.map((p) => new ProjectNode(p.id, p.name));
   }
 
   private async getProjectChildren(projectId: string): Promise<Node[]> {

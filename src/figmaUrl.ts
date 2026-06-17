@@ -24,15 +24,6 @@ export function figmaFileIcon(type: FigmaFileType): string {
 }
 
 /**
- * Clé d'un fichier Figma extraite d'une URL. Renvoie `undefined` pour les URLs
- * de création (`/…/new`) ou les URLs sans clé de fichier.
- */
-export function figmaFileKey(url: string): string | undefined {
-  const key = url.match(FILE_PATH)?.[1];
-  return key && key.toLowerCase() !== "new" ? key : undefined;
-}
-
-/**
  * Analyse une URL Figma collée par l'utilisateur. Renvoie la clé et un nom
  * lisible (déduit du slug de l'URL), ou `undefined` si ce n'est pas une URL de
  * fichier Figma valide.
