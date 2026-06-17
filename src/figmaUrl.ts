@@ -4,6 +4,25 @@
 const FILE_PATH =
   /\/(?:file|design|board|proto|slides|deck|buzz|sites?|make)\/([A-Za-z0-9]+)(?:\/([^/?#]+))?/i;
 
+export type FigmaFileType = "design" | "figjam" | "slides" | "make" | "buzz" | "sites";
+
+/** Déduit le type d'éditeur Figma à partir de l'URL ou de l'editor_type API. */
+export function figmaFileType(urlOrEditorType: string): FigmaFileType {
+  const val = urlOrEditorType.toLowerCase();
+  // Segment de chemin URL (ex: figma.com/board/…)
+  if (/\/board\/|^figjam$/.test(val)) return "figjam";
+  if (/\/(?:slides|deck)\/|^slides$/.test(val)) return "slides";
+  if (/\/make\/|^make$/.test(val)) return "make";
+  if (/\/buzz\/|^buzz$/.test(val)) return "buzz";
+  if (/\/sites?\/|^sites?$/.test(val)) return "sites";
+  return "design";
+}
+
+/** Nom du fichier SVG correspondant au type de fichier Figma. */
+export function figmaFileIcon(type: FigmaFileType): string {
+  return `${type}.svg`;
+}
+
 /**
  * Clé d'un fichier Figma extraite d'une URL. Renvoie `undefined` pour les URLs
  * de création (`/…/new`) ou les URLs sans clé de fichier.

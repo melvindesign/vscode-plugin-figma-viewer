@@ -12,6 +12,7 @@ export interface FigmaFile {
   name: string;
   thumbnail_url?: string;
   last_modified?: string;
+  editor_type?: string; // 'figma' | 'figjam' | 'slides' | 'make' | 'buzz' | 'sites'
 }
 
 /** Erreur API ; `needsAuth` indique un 401/403 (token invalide ou périmé). */
@@ -60,7 +61,19 @@ export class FigmaApi {
   }
 }
 
-/** URL web d'un fichier Figma à partir de sa clé. */
-export function fileUrl(key: string): string {
-  return `https://www.figma.com/file/${key}`;
+/** URL web d'un fichier Figma à partir de sa clé et de son type d'éditeur. */
+export function fileUrl(key: string, editorType?: string): string {
+  const segment = editorTypeToUrlSegment(editorType);
+  return `https://www.figma.com/${segment}/${key}`;
+}
+
+function editorTypeToUrlSegment(editorType?: string): string {
+  switch (editorType?.toLowerCase()) {
+    case "figjam": return "board";
+    case "slides": return "slides";
+    case "make": return "make";
+    case "buzz": return "buzz";
+    case "sites": return "sites";
+    default: return "file";
+  }
 }

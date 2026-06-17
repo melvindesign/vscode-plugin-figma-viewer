@@ -67,7 +67,7 @@ export function activate(context: vscode.ExtensionContext): void {
       commands.openFileExternal(node)
     ),
     vscode.commands.registerCommand("figmaViewer.newFile", () =>
-      commands.newFile(drafts)
+      commands.newFile(drafts, context.extensionUri)
     ),
     vscode.commands.registerCommand("figmaViewer.addDraft", () =>
       commands.addDraft(drafts)

@@ -3,6 +3,7 @@ import { FigmaApi, FigmaApiError, fileUrl } from "../figmaApi";
 import { FigmaAuth } from "../auth/figmaAuth";
 import { RecentStore } from "../recents";
 import { DraftStore } from "../drafts";
+import { figmaFileType, figmaFileIcon } from "../figmaUrl";
 
 type Node =
   | RecentsNode
@@ -148,7 +149,7 @@ export class FilesProvider implements vscode.TreeDataProvider<Node> {
   >();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
-  private readonly figmaIcon: vscode.Uri;
+  private readonly extensionUri: vscode.Uri;
 
   constructor(
     private readonly api: FigmaApi,
@@ -157,9 +158,15 @@ export class FilesProvider implements vscode.TreeDataProvider<Node> {
     private readonly drafts: DraftStore,
     private readonly auth: FigmaAuth
   ) {
-    this.figmaIcon = vscode.Uri.joinPath(extensionUri, "media", "figma.svg");
+    this.extensionUri = extensionUri;
     this.recents.onDidChange(() => this.refresh());
     this.drafts.onDidChange(() => this.refresh());
+  }
+
+  private iconForUrl(url: string): vscode.Uri {
+    const type = figmaFileType(url);
+    const file = figmaFileIcon(type);
+    return vscode.Uri.joinPath(this.extensionUri, "media", file);
   }
 
   refresh(): void {
@@ -218,7 +225,7 @@ export class FilesProvider implements vscode.TreeDataProvider<Node> {
   private getRecents(): Node[] {
     return this.recents
       .list()
-      .map((f) => new FileNode(f.name, f.url, this.figmaIcon));
+      .map((f) => new FileNode(f.name, f.url, this.iconForUrl(f.url)));
   }
 
   private getDrafts(): Node[] {
@@ -230,7 +237,7 @@ export class FilesProvider implements vscode.TreeDataProvider<Node> {
         .list()
         .map(
           (f) =>
-            new FileNode(f.name, f.url, this.figmaIcon, undefined, "figmaDraftFile")
+            new FileNode(f.name, f.url, this.iconForUrl(f.url), undefined, "figmaDraftFile")
         )
     );
     return nodes;
@@ -275,8 +282,9 @@ export class FilesProvider implements vscode.TreeDataProvider<Node> {
     if (files.length === 0) {
       return [new MessageNode("Aucun fichier dans ce projet.")];
     }
-    return files.map(
-      (f) => new FileNode(f.name, fileUrl(f.key), this.figmaIcon, f.last_modified)
-    );
+    return files.map((f) => {
+      const url = fileUrl(f.key, f.editor_type);
+      return new FileNode(f.name, url, this.iconForUrl(f.editor_type ?? url), f.last_modified);
+    });
   }
 }
